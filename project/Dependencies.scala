@@ -34,17 +34,14 @@ object Dependencies {
     val slf4jNopVersion = "1.6.4"
     val slickPgVersion = "0.19.4"
 
-    val operationsVersion = "3.0.21"
-
     // DART
-    val dartCommonsVersion = "3.0.290"
+    val dartCommonsVersion = "3.0.30"
     val jacksonOverrideVersion = "2.10.5"
-    val samsProgressVersion = "2.0.17"
-    val dartRestCommonsVersion = "3.0.15"
-    val dartAuthVersion = "3.1.159"
-    val arangoDatastoreRepoVersion = "3.0.17"
-    val cdr4sVersion = "3.0.256"
-//    val dartAuthVersion = "3.0.105"
+    val dartRestCommonsVersion = "3.0.4"
+    val dartAuthVersion = "3.1.11"
+    val arangoDatastoreRepoVersion = "3.0.8"
+    val cdr4sVersion = "3.0.9"
+    val operationsVersion = "3.0.14"
 
 
     val logging = Seq( "org.slf4j" % "slf4j-api" % slf4jVersion,

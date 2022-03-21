@@ -81,7 +81,11 @@ object ConfigConstructors {
                     entry.getKey -> entry.getValue.unwrapped()
                 })( collection.breakOut )
 
-                props.putAll( map.asJava )
+                map.foreach {
+                    case (key, value) =>
+                        props.put( key, value )
+                }
+
                 props
             }
 
