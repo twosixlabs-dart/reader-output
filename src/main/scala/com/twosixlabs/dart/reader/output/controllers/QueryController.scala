@@ -32,6 +32,12 @@ class QueryController( dependencies : QueryController.Dependencies )
 
         val query : ReaderOutputQuery = params.get( "metadata" ) match {
             case Some( metadata ) =>
+                if ( LOG.isDebugEnabled ) {
+                    LOG.debug( "Query Request Metadata" )
+                    LOG.debug( "======================" )
+                    LOG.debug( metadata )
+                }
+
                 unmarshalTo( metadata, classOf[ ReaderOutputQuery ] ) match {
                     case Success( queryMetadata ) => queryMetadata
                     case Failure( _ ) =>
@@ -43,14 +49,11 @@ class QueryController( dependencies : QueryController.Dependencies )
 
         val fixedQuery = query.copy( readers = query.readers.map( _.map( _.toLowerCase ) ),
                                      versions = query.versions.map( _.map( _.toLowerCase ) ),
-                                     documentIds = query.documentIds.map( _.map( _.toLowerCase ) ),
                                      outputVersions = query.outputVersions.map( _.map( _.toLowerCase ) ),
-                                     tenantId = query.tenantId.map( _.toLowerCase ),
-                                     labels = query.labels.map( _.map( _.toLowerCase ) ) )
+                                     tenantId = query.tenantId.map( _.toLowerCase ) )
 
         readerSearch.search( fixedQuery )
           .map( results => ReaderOutputQueryResults( results ) )
-
     } ) )
 }
 

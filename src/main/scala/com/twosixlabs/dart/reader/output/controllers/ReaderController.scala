@@ -51,6 +51,12 @@ class ReaderController( dependencies : ReaderController.Dependencies )
 
         val metadata : ReaderOutputMetadataSubmission = params.get( "metadata" ) match {
             case Some( metadata ) =>
+                if ( LOG.isDebugEnabled ) {
+                    LOG.debug( "Submission Request Metadata" )
+                    LOG.debug( "===========================" )
+                    LOG.debug( metadata )
+                }
+
                 unmarshalTo( metadata, classOf[ ReaderOutputMetadataSubmission ] ) match {
                     case Success( uploadMetadata ) => uploadMetadata
                     case Failure( _ ) =>
@@ -62,8 +68,12 @@ class ReaderController( dependencies : ReaderController.Dependencies )
                 throw new BadRequestBodyException( "no metadata provided" )
         }
 
+        val fixedMetadata = metadata.copy( identity = metadata.identity.toLowerCase,
+                                           version = metadata.version.toLowerCase,
+                                           outputVersion = metadata.outputVersion.map( _.toLowerCase ) )
+
         readerService
-          .submit( file.getName, file.get(), metadata )
+          .submit( file.getName, file.get(), fixedMetadata )
           .transform( {
               case res@Success( _ ) => res
               case Failure( e : InvalidMetadataException ) => Failure( new BadRequestBodyException( e.getMessage ) )

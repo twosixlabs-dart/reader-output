@@ -4,15 +4,16 @@ import better.files.File
 import com.twosixlabs.dart.auth.controllers.SecureDartController.AuthDependencies
 import com.twosixlabs.dart.auth.groups.ProgramManager
 import com.twosixlabs.dart.auth.user.DartUser
-import com.twosixlabs.dart.reader.output.configuration.ConfigConstructors.{AuthFromConfig, FromConfig}
+import com.twosixlabs.dart.reader.output.configuration.ConfigConstructors.{ AuthFromConfig, FromConfig }
 import com.twosixlabs.dart.reader.output.exceptions.InvalidMetadataException
-import com.twosixlabs.dart.reader.output.models.ReaderModels.ReaderOutputSubmissionResult
-import com.twosixlabs.dart.reader.output.services.submission.{DartReaderOutputSubmissionService, ReaderOutputSubmissionService}
+import com.twosixlabs.dart.reader.output.models.ReaderModels.{ ReaderOutputMetadataSubmission, ReaderOutputSubmissionResult }
+import com.twosixlabs.dart.reader.output.services.submission.{ DartReaderOutputSubmissionService, ReaderOutputSubmissionService }
 import com.twosixlabs.dart.operations.status.client.PipelineStatusUpdateClient
 import com.twosixlabs.dart.test.base.StandardTestBase3x
 import com.twosixlabs.dart.test.utilities.TestUtils
+import org.mockito.captor.ArgCaptor
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.{ Logger, LoggerFactory }
 
 import javax.servlet.http.HttpServletRequest
 import scala.concurrent.Future
@@ -137,6 +138,33 @@ class ReaderControllerTestSuite extends StandardTestBase3x with ScalatraSuite {
         submitMultipart( method = "POST", path = endpoint, params = Array( ("metadata", mockedMetaData) ), files = Array( ("file", testFile.toJava) ) ) {
             status shouldBe 400
             body shouldBe expectedResponse
+        }
+    }
+
+    "POST to /upload" should "lowercase reader id, reader version, and output version, but not document id or labels" in {
+        val metadataJson =
+            s"""{
+               | "identity": "Test-Identity",
+               | "version": "Test-Version",
+               | "document_id": "Test-Doc-Id",
+               | "output_version": "Test-Output-Version",
+			   | "labels": ["Test-Label-1", "Test-Label-2"]
+               |}
+               |""".stripMargin
+
+        val metaArg = ArgCaptor[ ReaderOutputMetadataSubmission ]
+
+        reset( readerService )
+
+        submitMultipart( method = "POST", path = endpoint, params = Array( ("metadata", metadataJson) ), files = Array( ("file", testFile.toJava) ) ) {
+            verify( readerService, times( 1 ) ).submit( *, *, metaArg )
+
+            metaArg.value.version shouldBe "test-version"
+            metaArg.value.identity shouldBe "test-identity"
+            metaArg.value.outputVersion shouldBe Some( "test-output-version" )
+
+            metaArg.value.labels shouldBe Some( Set( "Test-Label-1", "Test-Label-2" ) )
+            metaArg.value.documentId shouldBe "Test-Doc-Id"
         }
     }
 
