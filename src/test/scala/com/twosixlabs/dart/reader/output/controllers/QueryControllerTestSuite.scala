@@ -138,7 +138,7 @@ class QueryControllerTestSuite
             method = "POST",
             path = endpoint,
             params = Array( ("metadata", mockedQuery) )
-            ){
+        ) {
             status shouldBe 200
             body shouldBe expectedResponse
         }
@@ -156,7 +156,7 @@ class QueryControllerTestSuite
             method = "POST",
             path = endpoint,
             params = Array( ("metadata", mockedQuery) )
-            ){
+        ){
             status shouldBe 200
             body shouldBe expectedResponse
         }
@@ -176,7 +176,7 @@ class QueryControllerTestSuite
             method = "POST",
             path = endpoint,
             params = Array( ("metadata", mockedQuery) )
-            ){
+        ) {
             status shouldBe 200
             body shouldBe expectedResponse
         }
@@ -196,7 +196,7 @@ class QueryControllerTestSuite
             method = "POST",
             path = endpoint,
             params = Array( ("metadata", mockedQuery) )
-            ){
+        ){
             status shouldBe 200
             body shouldBe expectedResponse
         }
@@ -221,6 +221,25 @@ class QueryControllerTestSuite
             body shouldBe expectedResponse
         }
     }
+
+    "POST to /query" should "work for identity, version, and output version with incorrect cases" in {
+        updateTable( testIdentity, testVersion + "-test", testDocumentId, testStorageKey, outputVersion + "-test", Some( labels.toArray ) )
+
+        val mockedQuery      = s"""{"readers":["${testIdentity.toUpperCase}"],"versions":["$testVersion-TeSt"],"output_versions":["${outputVersion + "-tEsT"}"]}"""
+        ( arangoDartDatastore.getAllDocsAndTenants _ ).when.returns( Map( testDocumentId -> Set( "tenant-3" ) ) )
+        val expectedResponse =
+            s"""{"records":[{"identity":"${testIdentity}","version":"${testVersion}-test","document_id":"$testDocumentId","storage_key":"${testStorageKey}","output_version":"$outputVersion-test","tenants":["tenant-3"],"labels":["test","spec"]}]}""".stripMargin
+
+        submitMultipart(
+            method = "POST",
+            path = endpoint,
+            params = Array( "metadata" -> mockedQuery )
+        ){
+            status shouldBe 200
+            body shouldBe expectedResponse
+        }
+    }
+
 
     def updateTable(
         testIdentity : String, testVersion : String, testDocumentId : String, testStorageKey : String, outputVersion : String,

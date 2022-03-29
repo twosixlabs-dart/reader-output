@@ -1,16 +1,19 @@
 package com.twosixlabs.dart.reader.output.services.query
 
 import com.twosixlabs.dart.reader.output.configuration.PgSlickProfile.api._
-import com.twosixlabs.dart.reader.output.models.QueryModels.{ReaderOutputMetadataQueryResult, ReaderOutputQuery}
+import com.twosixlabs.dart.reader.output.models.QueryModels.{ ReaderOutputMetadataQueryResult, ReaderOutputQuery }
 import com.twosixlabs.dart.reader.output.models.ReaderModels.ReaderOutputMetadataRecord
 import com.twosixlabs.dart.reader.output.models.tables.Schema.readerOutputTableQuery
 import com.twosixlabs.dart.reader.output.services.db.ArangoDartDatastore
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class PgArangoReaderSearchService( dependencies : PgArangoReaderSearchService.Dependencies )
   extends ReaderSearchService {
+
+    private lazy val LOG = LoggerFactory.getLogger( getClass )
 
     import dependencies._
 
@@ -27,6 +30,12 @@ class PgArangoReaderSearchService( dependencies : PgArangoReaderSearchService.De
           .filterOpt( query.timestamp.flatMap( x => Option( x.on ) ) )( _.timestamp === _ )
           .filterOpt( query.versions )( _.readerVersion.inSetBind( _ ) )
           .result
+
+        if ( LOG.isDebugEnabled ) {
+            LOG.debug( "Query SQL" )
+            LOG.debug( "=========" )
+            searchQuery.statements.foreach( LOG.debug )
+        }
 
         database.run( searchQuery ).map( results => {
             // Use flatMap to transform and filter records at the same time

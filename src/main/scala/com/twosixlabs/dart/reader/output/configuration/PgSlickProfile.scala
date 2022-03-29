@@ -1,6 +1,7 @@
 package com.twosixlabs.dart.reader.output.configuration
 
 import com.github.tminglei.slickpg._
+import com.github.tminglei.slickpg.str.PgStringSupport
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 
@@ -11,6 +12,7 @@ trait PgSlickProfile extends ExPostgresProfile
   with PgRangeSupport
   with PgHStoreSupport
   with PgSearchSupport
+  with PgStringSupport
   with PgNetSupport
   with PgLTreeSupport {
     def pgjson = "jsonb" // jsonb support is in postgres 9.4.0 onward; for 9.3.x use "json"
@@ -28,6 +30,7 @@ trait PgSlickProfile extends ExPostgresProfile
       with RangeImplicits
       with HStoreImplicits
       with SearchImplicits
+      with PgStringImplicits
       with SearchAssistants {
         implicit val strListTypeMapper : DriverJdbcType[ List[ String ] ] = new SimpleArrayJdbcType[ String ]( "text" ).to( _.toList )
     }
